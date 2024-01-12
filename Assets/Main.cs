@@ -40,9 +40,12 @@ public class Main : MonoBehaviour
     GameObject[,] tileGrid;
     bool gameOver;
     Vector3Int prevCell;
+    Coroutine timerCoroutineReference;
 
     void Start()
     {
+        word = "";
+        gameOver = true;
         baseColor = new Color(1.0f, 0.85f, 0.59f);
         validWords = new Dictionary<string, int>();
         wordsSpelled = new Dictionary<string, int>();
@@ -50,10 +53,6 @@ public class Main : MonoBehaviour
         tileGrid = new GameObject[xBounds, yBounds];
         grid = new char[xBounds, yBounds];
         chainLine = lineObject.GetComponent<LineRenderer>();
-
-        resetVars();
-        createTiles();
-        fillGrid();
 
         // Use addressing to access CSM19.txt asynchronously
         _addressableTextAsset.LoadAssetAsync<TextAsset>().Completed += handle =>
@@ -69,7 +68,7 @@ public class Main : MonoBehaviour
             Addressables.Release(handle);
         };
 
-        StartCoroutine(gameTimer());
+        createTiles();
     }
 
     void Update()
@@ -79,13 +78,6 @@ public class Main : MonoBehaviour
             // Timer functions
             timer -= Time.deltaTime;
             updateTime(timer);
-
-            // Tap finger, start new word
-            if (Input.GetMouseButtonDown(0))
-            {   
-                word = "";
-                usedTiles.Clear();
-            }
 
             // Move finger, add letter
             if(Input.GetMouseButton(0))
@@ -144,11 +136,6 @@ public class Main : MonoBehaviour
                 int fx_toplay = 1; // default "pop" sound
                 word = word.ToUpper();
 
-                // Reset tiles and line renderer
-                colorUsedTiles(baseColor);
-                descaleUsedTiles();
-                lineObject.SetActive(false);
-
                 if (word.Length >= 2){ // Quirk: Words with < 3 letters are not valid, but 2-letter words still make SFX
                     if (validateWord(word)) {
                         wordsSpelled.Add(word, validWords[word]);
@@ -163,6 +150,13 @@ public class Main : MonoBehaviour
 
                     fxSource.PlayOneShot(sfx[fx_toplay]);
                 }
+
+                // Reset tiles and line renderer
+                colorUsedTiles(baseColor);
+                descaleUsedTiles();
+                lineObject.SetActive(false);
+                word = "";
+                usedTiles.Clear();
             }
         }
     }
@@ -244,16 +238,20 @@ public class Main : MonoBehaviour
         fxSource.PlayOneShot(sfx[9]);
         yield return new WaitForSeconds(5f);
         gameOver = true;
-        replayButton.gameObject.SetActive(true);
         fxSource.PlayOneShot(sfx[10]);
     }
 
     public void replayGame() {
-        replayButton.gameObject.SetActive(false);
+        try{
+            StopCoroutine(timerCoroutineReference);
+        }
+        catch (System.NullReferenceException) {}
+
         fxSource.PlayOneShot(sfx[8]);
         fillGrid();
         resetVars();
-        StartCoroutine(gameTimer());
+
+        timerCoroutineReference = StartCoroutine(gameTimer());
     }
 
     private void resetVars() {
