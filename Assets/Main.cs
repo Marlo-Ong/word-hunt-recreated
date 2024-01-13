@@ -21,9 +21,13 @@ public class Main : MonoBehaviour
     [SerializeField] private Tilemap tiles;
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private GameObject lineObject;
+    [SerializeField] private GameObject resultsBackboard;
+    [SerializeField] private GameObject playBackBoard;
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI wordCountText;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI resTextScores_Ref;
+    [SerializeField] private TextMeshProUGUI resTextWords_Ref;
     [SerializeField] private Button replayButton;
     [SerializeField] private AssetReference _addressableTextAsset = null;
     private LineRenderer chainLine;
@@ -238,6 +242,7 @@ public class Main : MonoBehaviour
         fxSource.PlayOneShot(sfx[9]);
         yield return new WaitForSeconds(5f);
         gameOver = true;
+        updateResults();
         fxSource.PlayOneShot(sfx[10]);
     }
 
@@ -250,6 +255,9 @@ public class Main : MonoBehaviour
         fxSource.PlayOneShot(sfx[8]);
         fillGrid();
         resetVars();
+
+        resultsBackboard.SetActive(false);
+        playBackBoard.SetActive(true);
 
         timerCoroutineReference = StartCoroutine(gameTimer());
     }
@@ -272,5 +280,19 @@ public class Main : MonoBehaviour
 
     private bool isAdjacent(Vector3Int a, Vector3Int b) {
         return Mathf.Abs(b.x - a.x) <= 1 && Mathf.Abs(b.y - a.y) <= 1 && Mathf.Abs(b.z - a.z) <= 1;
+    }
+
+    private void updateResults() {
+        resultsBackboard.SetActive(true);
+        playBackBoard.SetActive(false);
+
+        string resTextWords = "";
+        string resTextScores = "";
+        foreach (KeyValuePair<string,int> entry in wordsSpelled) {
+            resTextWords += entry.Key + "\n";
+            resTextScores += entry.Value.ToString() + "\n";
+        }
+        resTextScores_Ref.text = resTextScores;
+        resTextWords_Ref.text = resTextWords;
     }
 }
