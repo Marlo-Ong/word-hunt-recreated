@@ -264,7 +264,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 02:00
+  m_text: 01:20
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c026663e9aa414ea7a2f0a3ca8855221, type: 2}
   m_sharedMaterial: {fileID: 7754462242924060325, guid: c026663e9aa414ea7a2f0a3ca8855221, type: 2}
@@ -1239,7 +1239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc076aa5121cc4a23bc2e5cb8c2cbdf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameTimeLimitSeconds: 120
+  gameTimeLimitSeconds: 80
   xBounds: 4
   yBounds: 4
   musicSource: {fileID: 850516834}
@@ -1273,6 +1273,7 @@ MonoBehaviour:
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
+  unityGrid: {fileID: 1323762196}
 --- !u!4 &623415148
 Transform:
   m_ObjectHideFlags: 0
@@ -1314,10 +1315,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 680810335}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1323762197}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

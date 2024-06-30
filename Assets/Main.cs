@@ -1,12 +1,12 @@
 using System.Collections;
-using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using TMPro;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Text;
 
 public class Main : MonoBehaviour
 {
@@ -45,6 +45,9 @@ public class Main : MonoBehaviour
     bool gameOver;
     Vector3Int prevCell;
     Coroutine timerCoroutineReference;
+
+    Vector2 initialTouchPos;
+    bool isSwiping;
 
     void Start()
     {
@@ -292,7 +295,7 @@ public class Main : MonoBehaviour
             resTextWords += entry.Key + "\n";
             resTextScores += entry.Value.ToString() + "\n";
         }
-        resTextScores_Ref.text = resTextScores;
-        resTextWords_Ref.text = resTextWords;
+        resTextScores_Ref.text = resTextScores.ToString();
+        resTextWords_Ref.text = resTextWords.ToString();
     }
 }
