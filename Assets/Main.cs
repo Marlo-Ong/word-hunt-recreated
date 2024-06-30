@@ -12,6 +12,7 @@ public class Main : MonoBehaviour
 {
     // Game Settings
     [SerializeField] private int gameTimeLimitSeconds;
+    [SerializeField] private float tileHitboxThreshold;
     [SerializeField] private int xBounds;
     [SerializeField] private int yBounds;
 
@@ -46,9 +47,6 @@ public class Main : MonoBehaviour
     Vector3Int prevCell;
     Coroutine timerCoroutineReference;
 
-    Vector2 initialTouchPos;
-    bool isSwiping;
-
     void Start()
     {
         word = "";
@@ -78,6 +76,27 @@ public class Main : MonoBehaviour
         createTiles();
     }
 
+    bool getTouchedCell(out Vector3Int curCell)
+    {
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButton(0))
+        {
+            Vector2 worldPt = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            curCell = tiles.WorldToCell(worldPt);
+            Vector2 cellCenter = tiles.GetCellCenterWorld(curCell);
+
+            // If first letter in chain: more gracious (larger) hitbox
+            // else check if distance from center is within threshold
+            bool withinHitbox = word.Length == 0
+                || ((worldPt - cellCenter).sqrMagnitude < tileHitboxThreshold
+                && isAdjacent(curCell, prevCell));
+            
+            return withinBounds(curCell) && withinHitbox;
+        }
+
+        curCell = default;
+        return false;
+    }
+
     void Update()
     {
         if (!gameOver){
@@ -86,53 +105,46 @@ public class Main : MonoBehaviour
             timer -= Time.deltaTime;
             updateTime(timer);
 
-            // Move finger, add letter
-            if(Input.GetMouseButton(0))
+            if (getTouchedCell(out Vector3Int curCell))
             {
-                Vector2 worldPt = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector3Int curCell = tiles.WorldToCell(worldPt);
+                GameObject curTile = tileGrid[curCell.x, curCell.y];
 
-                // Pre-validate word
-                if (withinBounds(curCell) && (word.Length == 0 || isAdjacent(curCell, prevCell))){ // If not first letter, next tile must be adjacent
-                    GameObject curTile = tileGrid[curCell.x, curCell.y];
+                if (!usedTiles.Contains(curTile)) {
+                    usedTiles.Add(curTile);
+                    prevCell = curCell;
 
-                    if (!usedTiles.Contains(curTile)) {
-                        usedTiles.Add(curTile);
-                        prevCell = curCell;
+                    // VFX: Embiggen selected letter
+                    float lerp = 1.15f;
+                    curTile.transform.localScale = new Vector3(lerp, lerp, lerp);
 
-                        // VFX: Embiggen selected letter
-                        float lerp = 1.15f;
-                        curTile.transform.localScale = new Vector3(lerp, lerp, lerp);
+                    // Add letter to word
+                    char letter = grid[curCell.x, curCell.y];
+                    word += letter;
+                
+                    // Play appropriate SFX and tint tiles appropriately
 
-                        // Add letter to word
-                        char letter = grid[curCell.x, curCell.y];
-                        word += letter;
-                    
-                        // Play appropriate SFX and tint tiles appropriately
-                        if (validWords.ContainsKey(word)){
-                            if (wordsSpelled.ContainsKey(word)){ // Already spelled word
-                                fxSource.PlayOneShot(sfx[0]);
-                                colorUsedTiles(Color.yellow);
-                                colorLine(Color.white);
-                            }
-                            else { // Newly spelled word
-                                fxSource.PlayOneShot(sfx[2]);
-                                colorUsedTiles(Color.green);
-                                colorLine(Color.white);
-                            }
-                        }
-                        else { // Invalid word
-                            fxSource.PlayOneShot(sfx[0]);
-                            colorUsedTiles(Color.white);
-                            colorLine(Color.red);
-                        }
+                    if (!validWords.ContainsKey(word)){ // Invalid word
+                        fxSource.PlayOneShot(sfx[0]);
+                        colorUsedTiles(Color.white);
+                        colorLine(Color.red);
+                    }
 
-                        // Move chain line 
-                        lineObject.SetActive(true);
-                        Vector3 pos = worldPtToCentered(tiles.CellToWorld(curCell));           
-                        for (int i = word.Length-1; i < 16; i++){
-                            chainLine.SetPosition(i, pos);
-                        }
+                    else if (wordsSpelled.ContainsKey(word)){ // Already spelled word
+                        fxSource.PlayOneShot(sfx[0]);
+                        colorUsedTiles(Color.yellow);
+                        colorLine(Color.white);
+                    }
+                    else { // Newly spelled word
+                        fxSource.PlayOneShot(sfx[2]);
+                        colorUsedTiles(Color.green);
+                        colorLine(Color.white);
+                    }
+
+                    // Move chain line 
+                    lineObject.SetActive(true);
+                    Vector3 pos = worldPtToCentered(tiles.CellToWorld(curCell));           
+                    for (int i = word.Length-1; i < 16; i++){
+                        chainLine.SetPosition(i, pos);
                     }
                 }
             }
