@@ -286,14 +286,22 @@ public class Main : MonoBehaviour
     }
 
     private void updateResults() {
+
+        // Sort spelled words by score, then alphabetical
+        wordsSpelled = wordsSpelled
+            .OrderByDescending(word => word.Value)
+            .ThenBy(word => word.Key)
+            .ToDictionary(x => x.Key, x => x.Value);
+
         resultsBackboard.SetActive(true);
         playBackBoard.SetActive(false);
 
-        string resTextWords = "";
-        string resTextScores = "";
+        StringBuilder resTextWords = new();
+        StringBuilder resTextScores = new();
+
         foreach (KeyValuePair<string,int> entry in wordsSpelled) {
-            resTextWords += entry.Key + "\n";
-            resTextScores += entry.Value.ToString() + "\n";
+            resTextWords.AppendLine(entry.Key);
+            resTextScores.AppendLine(entry.Value.ToString());
         }
         resTextScores_Ref.text = resTextScores.ToString();
         resTextWords_Ref.text = resTextWords.ToString();
