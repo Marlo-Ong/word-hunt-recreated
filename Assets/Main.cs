@@ -34,6 +34,8 @@ public class Main : MonoBehaviour
     [SerializeField] private TextMeshProUGUI accuracyText;
     [SerializeField] private TextMeshProUGUI resTextScores_Ref;
     [SerializeField] private TextMeshProUGUI resTextWords_Ref;
+    [SerializeField] private TextMeshProUGUI resTextStatDesc_Ref;
+    [SerializeField] private TextMeshProUGUI resTextStatVal_Ref;
     [SerializeField] private GameObject viewWordsButton;
     [SerializeField] private GameObject viewStatsButton;
     [SerializeField] private Button replayButton;
@@ -318,9 +320,6 @@ public class Main : MonoBehaviour
         fillGrid();
         resetVars();
 
-        resultsBackboard.SetActive(false);
-        playBackBoard.SetActive(true);
-
         timerCoroutineReference = StartCoroutine(gameTimer());
     }
 
@@ -369,9 +368,8 @@ public class Main : MonoBehaviour
             .ThenBy(word => word.Key)
             .ToDictionary(x => x.Key, x => x.Value);
 
-        resultsBackboard.SetActive(true);
-        playBackBoard.SetActive(false);
 
+        // Update words results
         StringBuilder resTextWords = new();
         StringBuilder resTextScores = new();
 
@@ -382,19 +380,28 @@ public class Main : MonoBehaviour
         }
         resTextScores_Ref.text = resTextScores.ToString();
         resTextWords_Ref.text = resTextWords.ToString();
+
+        // Update stats results
+        StringBuilder resTextStatDesc = new();
+        StringBuilder resTextStatVal = new();
+
+        resTextStatDesc.AppendLine("Accuracy");
+        resTextStatDesc.AppendLine("Words Per Minute");
+        resTextStatDesc.AppendLine("Score Per Second");
+
+        resTextStatVal.AppendLine(accuracy.ToString("P2"));
+
+        int WPM = Mathf.RoundToInt(wordsSpelled.Count * (60f / gameTimeLimitSeconds));
+        resTextStatVal.AppendLine(WPM.ToString());
+
+        int SPS = Mathf.RoundToInt(totalScore / gameTimeLimitSeconds);
+        resTextStatVal.AppendLine(SPS.ToString());
+
+        resTextStatDesc_Ref.text = resTextStatDesc.ToString();
+        resTextStatVal_Ref.text = resTextStatVal.ToString();
+
+        // Display results
+        resultsBackboard.SetActive(true);
+        playBackBoard.SetActive(false);
     }
-
-    #region Button Methods
-
-    public void SetWordsButtonActive(bool enabled)
-    {
-        viewWordsButton.SetActive(enabled);
-    }
-
-    public void SetStatsButtonActive(bool enabled)
-    {
-        viewStatsButton.SetActive(enabled);
-    }
-
-    #endregion
 }
