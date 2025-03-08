@@ -11,12 +11,14 @@ using System.Text;
 public class Main : MonoBehaviour
 {
     // Game Settings
+    [Header("Game Settings")]
     [SerializeField] private int gameTimeLimitSeconds;
     [SerializeField] private float tileHitboxThreshold;
     [SerializeField] private int xBounds;
     [SerializeField] private int yBounds;
 
     // Game Object References
+    [Header("GameObject References")]
     [SerializeField] private AudioSource musicSource, fxSource;
     [SerializeField] private List<AudioClip> sfx;
     [SerializeField] private Tilemap tiles;
@@ -27,6 +29,9 @@ public class Main : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI wordCountText;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI wpmText;
+    [SerializeField] private TextMeshProUGUI spsText;
+    [SerializeField] private TextMeshProUGUI accuracyText;
     [SerializeField] private TextMeshProUGUI resTextScores_Ref;
     [SerializeField] private TextMeshProUGUI resTextWords_Ref;
     [SerializeField] private GameObject viewWordsButton;
@@ -48,6 +53,8 @@ public class Main : MonoBehaviour
     bool gameOver;
     Vector3Int prevCell;
     Coroutine timerCoroutineReference;
+    float accuracy;
+    int wordsAttempted;
 
     void Start()
     {
@@ -165,8 +172,10 @@ public class Main : MonoBehaviour
                 int fx_toplay = 1; // default "pop" sound
                 word = word.ToUpper();
 
-                if (word.Length >= 2)
-                { // Quirk: Words with < 3 letters are not valid, but 2-letter words still make SFX
+                if (word.Length >= 3)
+                {
+                    wordsAttempted += 1;
+
                     if (validateWord(word))
                     {
                         wordsSpelled.Add(word, validWords[word]);
@@ -179,6 +188,14 @@ public class Main : MonoBehaviour
                         fx_toplay = word.Length > 6 ? 6 : word.Length;
                     }
 
+                    // Update accuracy score
+                    accuracy = (float)wordsSpelled.Count / wordsAttempted;
+                    accuracyText.text = $"Accuracy: {accuracy:P0}";
+                }
+
+                // Quirk: Words with < 3 letters are not valid, but 2-letter words still make SFX
+                if (word.Length >= 2)
+                {
                     fxSource.PlayOneShot(sfx[fx_toplay]);
                 }
 
@@ -310,9 +327,12 @@ public class Main : MonoBehaviour
     private void resetVars()
     {
         wordCount = 0;
+        accuracy = 1f;
+        wordsAttempted = 0;
         wordCountText.text = "0";
         totalScore = 0;
         scoreText.text = "0000";
+        accuracyText.text = "Accuracy: 100%";
         timer = gameTimeLimitSeconds + 1f;
         wordsSpelled.Clear();
         gameOver = false;
@@ -323,6 +343,16 @@ public class Main : MonoBehaviour
         float minutes = Mathf.FloorToInt(timeToDisplay / 60);
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+
+        float elapsedTime = gameTimeLimitSeconds - timeToDisplay;
+
+        // Update WPM
+        int WPM = Mathf.RoundToInt(wordsSpelled.Count * (60f / elapsedTime));
+        wpmText.text = $"WPM: {WPM}";
+
+        // Update SPS
+        int SPS = Mathf.RoundToInt(totalScore / elapsedTime);
+        spsText.text = $"SPS: {SPS}";
     }
 
     private bool isAdjacent(Vector3Int a, Vector3Int b)
